@@ -111,9 +111,10 @@ dataset. The results file is committed at `results/metrics.json`.
 Every from-scratch estimator matches its scikit-learn reference to four decimals
 on these toy problems. `GaussianNB` reproduces sklearn's per-class means and
 variances to nine decimals, and its predictions are identical. PCA and the
-Gaussian mixture are checked the same way in the test suite, matching sklearn to
-better than 1e-6 on explained variance and mean log-likelihood. This is
-controlled validation on small datasets, not a benchmark of speed or scale.
+Gaussian mixture are checked the same way in the test suite: PCA matches sklearn
+to better than 1e-6 on explained variance, and the Gaussian mixture agrees to
+about 1e-6 on mean log-likelihood. This is controlled validation on small
+datasets, not a benchmark of speed or scale.
 
 ## Scope and limitations
 
