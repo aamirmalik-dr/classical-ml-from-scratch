@@ -1,117 +1,152 @@
 # classical-ml-from-scratch
 
-Core classical machine learning algorithms implemented from scratch in NumPy, with a
-consistent fit/predict estimator API and unit tests that validate every implementation
-against its scikit-learn counterpart on toy datasets.
+![Decision boundary animation](assets/decision_boundary.gif)
 
-## Algorithms
+Watch four estimators sweep their complexity knob in lockstep on the same
+synthetic two-moons sample: k-nearest-neighbours goes from many neighbours to one,
+the decision tree grows deeper, the RBF support vector machine widens its kernel,
+and logistic regression trains for more iterations. Every boundary above is drawn
+by an estimator written from the underlying math in plain NumPy, with no
+scikit-learn in the algorithm code.
 
-| Estimator | Method | Module |
+## The gallery
+
+One synthetic sample, six decision regions, one shared `fit` / `predict` API. This
+is the whole point of the package: swapping one model for another is a single
+line.
+
+![Decision region gallery](assets/gallery.png)
+
+From left to right, top to bottom: the linear boundary of logistic regression, the
+quadratic boundary of Gaussian naive Bayes, the piecewise boundary of k-NN, the
+axis-aligned boxes of a depth-5 tree, the smooth boundary of an RBF SVM, and the
+Voronoi partition of k-means. Regenerate both artifacts with
+`python scripts/make_gallery.py`.
+
+## The API
+
+Nine estimators share one contract, borrowed from scikit-learn and implemented
+independently:
+
+```python
+import numpy as np
+from classml import KNeighborsClassifier, DecisionTreeClassifier, KernelSVM
+
+table = np.loadtxt("data/sample_moons.csv", delimiter=",", skiprows=1)
+X, y = table[:, :2], table[:, 2].astype(int)
+
+model = KNeighborsClassifier(n_neighbors=15).fit(X, y)   # fit returns self
+model.predict(X[:5])                                     # -> array of labels
+model.score(X, y)                                        # -> accuracy
+
+# every classifier is a drop-in replacement
+for est in (DecisionTreeClassifier(max_depth=5), KernelSVM(gamma=1.0)):
+    print(est.fit(X, y).score(X, y))
+```
+
+`fit(X, y)` always returns `self`. Classifiers add `predict` and `score`
+(accuracy), most add `predict_proba`; regressors return an R^2 `score`; PCA adds
+`transform` and `inverse_transform`. Fitted attributes carry a trailing
+underscore. The full contract lives in `classml.base`, and adding your own
+estimator is a short subclass, shown in `examples/custom_estimator.py`. The
+complete reference is in [docs/api.md](docs/api.md).
+
+## The estimators
+
+| Estimator | Kind | Method |
 |---|---|---|
-| `LinearRegression` | Normal equations (lstsq) and batch gradient descent | `classml/linear_regression.py` |
-| `LogisticRegression` | Batch gradient descent, binary and one-vs-rest multiclass, optional L2 | `classml/logistic_regression.py` |
-| `KMeans` | Lloyd's algorithm with k-means++ seeding and restarts | `classml/kmeans.py` |
-| `PCA` | SVD of the centered data, transform and inverse transform | `classml/pca.py` |
-| `KernelSVM` | RBF kernel, soft margin, simplified SMO dual solver | `classml/svm.py` |
-| `GaussianMixtureEM` | Full-covariance EM in log space, k-means initialisation | `classml/gmm.py` |
+| `LinearRegression` | regressor | normal equations or batch gradient descent |
+| `LogisticRegression` | classifier | batch gradient descent, one-vs-rest, optional L2 |
+| `KNeighborsClassifier` | classifier | lazy Euclidean vote, uniform or distance weights |
+| `DecisionTreeClassifier` | classifier | CART, greedy Gini-impurity splits |
+| `GaussianNB` | classifier | per-class Gaussians scored in log space |
+| `KernelSVM` | classifier | RBF kernel, soft margin, simplified SMO dual |
+| `KMeans` | clustering | Lloyd's algorithm, k-means++ seeding, restarts |
+| `PCA` | decomposition | SVD of the centered data |
+| `GaussianMixtureEM` | clustering | full-covariance EM in log space |
 
-Every estimator follows the same interface: `fit(X, y)` returns `self`, then
-`predict(X)`, plus `transform` for PCA, `predict_proba` where probabilities make
-sense, and `score` (accuracy, R2, or mean log-likelihood as appropriate). scikit-learn
-is a test-time reference and data source only, none of the algorithm code depends on it.
+scikit-learn appears only as a test-time reference and a data source. None of the
+algorithm code imports it.
 
-## Install
+## Install and run
 
 ```
 git clone https://github.com/aamirmalik-dr/classical-ml-from-scratch.git
 cd classical-ml-from-scratch
 python -m venv .venv
-.venv\Scripts\activate        # Windows, use: source .venv/bin/activate on Linux/macOS
+.venv\Scripts\activate        # Windows; use source .venv/bin/activate elsewhere
 pip install -e ".[dev]"
 ```
 
-Requires Python 3.11 or newer.
-
-## Run
+Requires Python 3.11 or newer. Then, all offline on the committed sample:
 
 ```
-python scripts/demo.py        # runs every algorithm, writes figures to results/
-python scripts/download_data.py   # verifies dataset availability (all sklearn loaders, fully offline)
-pytest -q                     # 29 tests comparing against sklearn references
+python examples/quickstart.py          # fit and predict in a few lines
+python examples/compare_classifiers.py # every classifier through the shared API
+python bench_vs_sklearn.py             # each estimator vs its sklearn reference
+python scripts/make_gallery.py         # regenerate the gallery and the hero GIF
+pytest -q                              # 43 tests, each checked against sklearn
 ```
 
-There is also a short walkthrough notebook at `notebooks/demo.ipynb` with executed
+There is also a narrated walkthrough at `notebooks/demo.ipynb` with executed
 outputs.
 
-## Results
+## Validation against scikit-learn
 
-All numbers below were produced by running `python scripts/demo.py` in a fresh
-virtual environment (Python 3.11.9, NumPy 1.26+, scikit-learn 1.4+).
+Numbers below were produced by `python bench_vs_sklearn.py` in a fresh Python
+3.11 virtual environment (NumPy 2.x, scikit-learn 1.4+). Each row fits the
+from-scratch estimator and the matching scikit-learn estimator on the same toy
+dataset. The results file is committed at `results/metrics.json`.
 
-Linear regression, diabetes dataset (standardised features):
+| Estimator | Dataset | Metric | classml | scikit-learn |
+|---|---|---|---|---|
+| LinearRegression | diabetes | R2 | 0.5177 | 0.5177 |
+| LogisticRegression | two moons | accuracy | 0.8675 | 0.8675 |
+| KNeighborsClassifier | iris | accuracy | 0.9733 | 0.9733 |
+| DecisionTreeClassifier | iris | accuracy | 0.9933 | 0.9933 |
+| GaussianNB | wine | accuracy | 0.9888 | 0.9888 |
+| KernelSVM | two moons | accuracy | 0.9667 | 0.9667 |
+| KMeans | blobs | ARI vs truth | 1.0000 | 1.0000 |
 
-- R2 closed form 0.5177, gradient descent 0.5177, sklearn reference 0.5177
-- max absolute coefficient difference vs sklearn: 7.8e-14
-
-Logistic regression, two moons (n=400, noise 0.25):
-
-- training accuracy 0.8675 (a linear boundary caps accuracy on this dataset by design)
-
-RBF kernel SVM (simplified SMO), two moons (n=300, noise 0.2):
-
-- training accuracy 0.9667, identical to sklearn `SVC(C=1.0, gamma=1.0)` at 0.9667
-- 64 support vectors out of 300 samples
-
-K-means, 4 Gaussian blobs (n=500):
-
-- inertia 948.89 vs sklearn 948.89
-- adjusted Rand index 1.0000 vs both sklearn labels and true labels
-
-PCA, digits dataset (64 features):
-
-- explained variance ratio PC1 0.1489, PC2 0.1362, 28.5 percent in two components
-  (matches sklearn to 1e-8 in the unit tests)
-
-Gaussian mixture EM, 3 Gaussian blobs (n=600):
-
-- converged in 20 EM iterations at tol 1e-6, log-likelihood monotone non-decreasing
-- mean log-likelihood -4.2900 vs sklearn -4.2900, ARI 1.0000 vs sklearn cluster labels
-
-Example figures produced by the demo (committed copies live in `docs/figures/`,
-fresh ones are written to the gitignored `results/` directory on every run):
-
-| | |
-|---|---|
-| ![SVM decision boundary](docs/figures/svm_boundary.png) | ![GMM ellipses](docs/figures/gmm_ellipses.png) |
-| ![K-means clusters](docs/figures/kmeans_clusters.png) | ![PCA of digits](docs/figures/pca_digits.png) |
+Every from-scratch estimator matches its scikit-learn reference to four decimals
+on these toy problems. `GaussianNB` reproduces sklearn's per-class means and
+variances to nine decimals, and its predictions are identical. PCA and the
+Gaussian mixture are checked the same way in the test suite, matching sklearn to
+better than 1e-6 on explained variance and mean log-likelihood. This is
+controlled validation on small datasets, not a benchmark of speed or scale.
 
 ## Scope and limitations
 
-- Educational, clean-room implementations written from the underlying math. They are
-  correct on the toy problems they are tested on but not tuned for speed or scale;
-  use scikit-learn for real workloads.
+- Educational, clean-room implementations written from the math. They are correct
+  on the toy problems they are tested on but are not tuned for speed or scale. Use
+  scikit-learn for real workloads.
 - `KernelSVM` is binary only and uses the simplified SMO heuristic, which converges
-  more slowly than a full working-set SMO.
+  more slowly than a full working-set solver.
 - `LogisticRegression` multiclass is one-vs-rest, not true multinomial softmax.
-- `GaussianMixtureEM` fits full covariances only, no tied/diagonal/spherical options.
-- No sparse input support, everything is dense float64.
+- `KNeighborsClassifier` is brute-force, with no KD-tree or ball-tree index.
+- `GaussianMixtureEM` fits full covariances only.
+- Everything is dense float64, with no sparse-input support.
 
 ## Project layout
 
 ```
-src/classml/     library code, one module per algorithm
-scripts/         demo.py (end-to-end run with figures), download_data.py
+src/classml/     library code, one module per algorithm, shared base in base.py
+examples/        quickstart, classifier comparison, and a custom-estimator recipe
+scripts/         generate_sample.py, make_gallery.py, demo.py, download_data.py
+bench_vs_sklearn.py   accuracy-vs-sklearn benchmark, writes results/metrics.json
+docs/api.md      full API reference
 notebooks/       demo.ipynb, executed walkthrough
 tests/           pytest suite, each algorithm checked against sklearn
-docs/figures/    committed copies of the demo figures shown in this README
-data/            unused, kept for layout consistency (all data is from sklearn loaders)
+data/            sample_moons.csv, the synthetic offline sample
+assets/          decision_boundary.gif (hero) and gallery.png (contact sheet)
+results/         metrics.json from the benchmark
 ```
 
 ## Development
 
 ```
-ruff check src tests scripts
-black src tests scripts
+ruff check src tests scripts examples bench_vs_sklearn.py
+black src tests scripts examples
 pytest -q
 ```
 
