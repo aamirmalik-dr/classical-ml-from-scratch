@@ -15,12 +15,17 @@ dist/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data (keep the README)
+# Data (keep the README and the small committed synthetic sample)
 data/*
 !data/README.md
+!data/sample_moons.csv
 
-# Outputs
-results/
+# Outputs (ignore ad-hoc run figures, but keep the committed metrics file)
+results/*
+!results/metrics.json
+
+# Committed hero animation and gallery contact sheet
+!assets/
 
 # OS
 .DS_Store
