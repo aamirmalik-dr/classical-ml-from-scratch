@@ -1,0 +1,62 @@
+{
+  "note": "Controlled validation on toy datasets. classml is educational, not tuned for speed or scale. sklearn is a reference only.",
+  "numpy_version": "2.4.6",
+  "results": [
+    {
+      "estimator": "LinearRegression",
+      "dataset": "diabetes",
+      "metric": "R2",
+      "ours": 0.5177,
+      "sklearn": 0.5177,
+      "fit_seconds": 0.0003
+    },
+    {
+      "estimator": "LogisticRegression",
+      "dataset": "two_moons",
+      "metric": "accuracy",
+      "ours": 0.8675,
+      "sklearn": 0.8675,
+      "fit_seconds": 0.0123
+    },
+    {
+      "estimator": "KNeighborsClassifier",
+      "dataset": "iris",
+      "metric": "accuracy",
+      "ours": 0.9733,
+      "sklearn": 0.9733,
+      "fit_seconds": 0.0001
+    },
+    {
+      "estimator": "DecisionTreeClassifier",
+      "dataset": "iris",
+      "metric": "accuracy",
+      "ours": 0.9933,
+      "sklearn": 0.9933,
+      "fit_seconds": 0.0058
+    },
+    {
+      "estimator": "GaussianNB",
+      "dataset": "wine",
+      "metric": "accuracy",
+      "ours": 0.9888,
+      "sklearn": 0.9888,
+      "fit_seconds": 0.0002
+    },
+    {
+      "estimator": "KernelSVM",
+      "dataset": "two_moons",
+      "metric": "accuracy",
+      "ours": 0.9667,
+      "sklearn": 0.9667,
+      "fit_seconds": 0.2265
+    },
+    {
+      "estimator": "KMeans",
+      "dataset": "blobs",
+      "metric": "ARI_vs_true",
+      "ours": 1.0,
+      "sklearn": 1.0,
+      "fit_seconds": 0.0066
+    }
+  ]
+}
