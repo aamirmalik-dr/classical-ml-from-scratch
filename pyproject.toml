@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "classml"
-version = "0.1.0"
+version = "0.2.0"
 description = "Classical machine learning algorithms implemented from scratch in NumPy"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,6 +14,7 @@ dependencies = [
     "numpy>=1.26",
     "scikit-learn>=1.4",
     "matplotlib>=3.8",
+    "imageio>=2.31",
 ]
 
 [project.optional-dependencies]
