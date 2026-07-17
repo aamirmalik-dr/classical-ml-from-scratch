@@ -20,8 +20,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
-    "ruff>=0.4",
-    "black>=24.0",
+    "ruff==0.15.22",
+    "black==26.5.1",
     "jupyter>=1.0",
     "nbconvert>=7.0",
 ]
