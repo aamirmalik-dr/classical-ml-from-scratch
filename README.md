@@ -1,5 +1,7 @@
 # classical-ml-from-scratch
 
+*Origin: Originally developed for the Machine Learning for AI course at KAIST (Spring 2021); refactored and open-sourced in July 2026.*
+
 ![Decision boundary animation](assets/decision_boundary.gif)
 
 Watch four estimators sweep their complexity knob in lockstep on the same
